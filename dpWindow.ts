@@ -46,7 +46,7 @@ class dpWindow {
 	private _Init(options: IDPWOptions) {
 
 		//const defaults: IDPWOptions = {
-
+		 
 		//	//appearence: {
 		//	//	color: "White",
 		//	//	bgColor: "Black",
