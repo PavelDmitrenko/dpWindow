@@ -310,8 +310,8 @@ class dpWindow {
 
 	public Close(sender = null) {
 		console.log(sender);
-
-		if (jQuery.isFunction(this.settings.onBeforeClose)) {
+		
+		if (!sender.hasClass("dpModalWindowBg") && jQuery.isFunction(this.settings.onBeforeClose)) {
 
 			this._log("onBeforeClose fired", DpLogSeverity.Trace);
 

@@ -235,7 +235,7 @@ var dpWindow = /** @class */ (function () {
         var _this = this;
         if (sender === void 0) { sender = null; }
         console.log(sender);
-        if (jQuery.isFunction(this.settings.onBeforeClose)) {
+        if (!sender.hasClass("dpModalWindowBg") && jQuery.isFunction(this.settings.onBeforeClose)) {
             this._log("onBeforeClose fired", DpLogSeverity.Trace);
             var def = $.Deferred();
             $.when(this.settings.onBeforeClose(def, $(sender)))
