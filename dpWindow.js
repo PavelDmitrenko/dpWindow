@@ -9,7 +9,7 @@ var DpLogSeverity;
     DpLogSeverity[DpLogSeverity["Trace"] = 0] = "Trace";
     DpLogSeverity[DpLogSeverity["Error"] = 1] = "Error";
 })(DpLogSeverity || (DpLogSeverity = {}));
-var dpWindowHeader = (function () {
+var dpWindowHeader = /** @class */ (function () {
     function dpWindowHeader(ctl) {
         this._ctl = ctl;
     }
@@ -21,7 +21,7 @@ var dpWindowHeader = (function () {
     };
     return dpWindowHeader;
 }());
-var dpWindow = (function () {
+var dpWindow = /** @class */ (function () {
     function dpWindow() {
     }
     dpWindow.prototype.Show = function (options) {
@@ -97,8 +97,16 @@ var dpWindow = (function () {
         var _this = this;
         // Attaching close action
         if (this.settings.closeSelectors) {
-            console.log(this.settings.closeSelectors);
             this.Content.find(this.settings.closeSelectors)
+                .on("click", function (sender) {
+                _this._log("Clicked on element with 'Close' action", DpLogSeverity.Trace);
+                _this._close();
+            });
+        }
+        ;
+        if (this.settings.closeDefferedSelectors) {
+            console.log(this.settings.closeDefferedSelectors);
+            this.Content.find(this.settings.closeDefferedSelectors)
                 .on("click", function (sender) {
                 _this._log("Clicked on element with 'Close' action", DpLogSeverity.Trace);
                 _this.Close($(sender.currentTarget));
@@ -227,17 +235,17 @@ var dpWindow = (function () {
         var _this = this;
         if (sender === void 0) { sender = null; }
         console.log(sender);
-        if (jQuery.isFunction(this.settings.onBeforeClose)) {
+        if (!sender.hasClass("dpModalWindowBg") && jQuery.isFunction(this.settings.onBeforeClose)) {
             this._log("onBeforeClose fired", DpLogSeverity.Trace);
             var def = $.Deferred();
             $.when(this.settings.onBeforeClose(def, $(sender)))
                 .then(function (res) {
                 if (res) {
-                    _this._log("Deffered with TRUE value, closing window.", DpLogSeverity.Trace);
+                    _this._log("Deferred with TRUE value, closing window.", DpLogSeverity.Trace);
                     _this._close();
                 }
                 else {
-                    _this._log("Deffered with FALSE value, preventing window close.", DpLogSeverity.Trace);
+                    _this._log("Deferred with FALSE value, preventing window close.", DpLogSeverity.Trace);
                 }
                 ;
             });
