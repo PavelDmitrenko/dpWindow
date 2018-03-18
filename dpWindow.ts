@@ -11,7 +11,7 @@ enum DpLogSeverity {
 	Error
 }
 
-class dpWindowHeader implements IDPWHeader { 
+class dpWindowHeader implements IDPWHeader {
 	private readonly _ctl: JQuery;
 
 	constructor(ctl: JQuery) {
@@ -30,7 +30,7 @@ class dpWindowHeader implements IDPWHeader {
 
 
 class dpWindow {
-	
+
 	private plugin: any;
 	private settings: IDPWOptions;
 	private container: JQuery;
@@ -46,7 +46,7 @@ class dpWindow {
 	private _Init(options: IDPWOptions) {
 
 		//const defaults: IDPWOptions = {
-		 
+
 		//	//appearence: {
 		//	//	color: "White",
 		//	//	bgColor: "Black",
@@ -67,7 +67,7 @@ class dpWindow {
 		this.settings = options;
 
 		this.settings.content = $.extend(defaultContent, this.settings.content);
-		this.settings.appearence = $.extend(defaultAppearence, this.settings.appearence );
+		this.settings.appearence = $.extend(defaultAppearence, this.settings.appearence);
 
 		if (this.settings.closeOnOuterMouseClick === undefined)
 			this.settings.closeOnOuterMouseClick = true;
@@ -95,8 +95,7 @@ class dpWindow {
 
 			this._attachCloseActions();
 		}
-		else
-		{
+		else {
 			const loadPrg: JQuery = $("<div/>").attr("class", "dpw-loading");
 
 			$.ajax({
@@ -127,7 +126,7 @@ class dpWindow {
 						this.settings.onLoaded(this);
 
 					this._attachCloseActions();
-					
+
 				},
 
 				error: (xhr, ajaxOptions, thrownError) => {
@@ -139,10 +138,20 @@ class dpWindow {
 	}
 
 	private _attachCloseActions() {
+
 		// Attaching close action
 		if (this.settings.closeSelectors) {
-			console.log(this.settings.closeSelectors);
 			this.Content.find(this.settings.closeSelectors)
+				.on("click", (sender) => {
+					this._log("Clicked on element with 'Close' action", DpLogSeverity.Trace);
+					this._close();
+				});
+		};
+
+		if (this.settings.closeDefferedSelectors) {
+			console.log(this.settings.closeDefferedSelectors);
+
+			this.Content.find(this.settings.closeDefferedSelectors)
 				.on("click", (sender) => {
 					this._log("Clicked on element with 'Close' action", DpLogSeverity.Trace);
 					this.Close($(sender.currentTarget));
@@ -269,7 +278,7 @@ class dpWindow {
 
 
 		res.zindex = zIndex + 2; // "2" is for background reservation
-		
+
 		return res;
 	};
 
@@ -300,7 +309,8 @@ class dpWindow {
 
 	public Close(sender = null) {
 		console.log(sender);
-		if (jQuery.isFunction(this.settings.onBeforeClose)) {
+
+		if (!sender.hasClass("dpModalWindowBg") && jQuery.isFunction(this.settings.onBeforeClose)) {
 
 			this._log("onBeforeClose fired", DpLogSeverity.Trace);
 
@@ -309,13 +319,14 @@ class dpWindow {
 			$.when(this.settings.onBeforeClose(def, $(sender)))
 				.then(res => {
 					if (res) {
-						this._log("Deffered with TRUE value, closing window.", DpLogSeverity.Trace);
+						this._log("Deferred with TRUE value, closing window.", DpLogSeverity.Trace);
 						this._close();
 					} else {
-						this._log("Deffered with FALSE value, preventing window close.", DpLogSeverity.Trace);
+						this._log("Deferred with FALSE value, preventing window close.", DpLogSeverity.Trace);
 					};
 				});
-		} else {
+		}
+		else {
 			this._log("Closing window.", DpLogSeverity.Trace);
 			this._close();
 		}
@@ -332,7 +343,7 @@ class dpWindow {
 		};
 	};
 
-	public Serialize():any {
+	public Serialize(): any {
 		var obj = {};
 
 		this.Content.find("[data-serializable]").each((ind, el) => {
@@ -343,7 +354,7 @@ class dpWindow {
 			const n = $el.attr("name"),
 				v = $el.val(),
 				type = $el.attr("data-serializable");
-			
+
 			if ($el.is("ul")) {
 				isMultiple = true;
 			}
@@ -372,8 +383,8 @@ class dpWindow {
 		return obj;
 	}
 
-	private _Serialize(el:JQuery) {
-		
+	private _Serialize(el: JQuery) {
+
 	}
 
 	private _log(msg: any, severity: DpLogSeverity) {
@@ -382,8 +393,8 @@ class dpWindow {
 		let color = "black";
 
 		switch (+severity) {
-		case DpLogSeverity.Error: color = "LimeGreen"; bgc = "Black"; break;
-		case DpLogSeverity.Trace: color = "black"; bgc = "White"; break;
+			case DpLogSeverity.Error: color = "LimeGreen"; bgc = "Black"; break;
+			case DpLogSeverity.Trace: color = "black"; bgc = "White"; break;
 		}
 
 		if (typeof msg == "object") {
