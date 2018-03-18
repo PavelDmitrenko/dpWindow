@@ -20,14 +20,17 @@ interface IDPWOptions {
 	content: IDPWContentSettings;
 	size: IDPWClientSize;
 	appearence?: IDPWAppearence;
-	closeDefferedSelectors?: string; // Selectors which actions as current window closers (ex: button with "Close" meaning)
 	closeSelectors?: string; // Selectors which actions as current window closers (ex: button with "Close" meaning)
+
 	struct?: IDPWStructSettings;
+
 	closeOnOuterMouseClick?: boolean; // Close window on mouse click outside window bounds
+
 	log?: boolean;
 
 	// Events
-	onLoaded?(wnd: any): any;
+	onLoaded?(wnd: any): void;
+	//onBeforeClose?(deffered: JQueryDeferred<boolean>, sender: JQuery): boolean;
 	onBeforeClose?(deffered: any, sender: JQuery): void;
 	onContentPrefilter?(response: Object): string;
 	onClose?(): void;

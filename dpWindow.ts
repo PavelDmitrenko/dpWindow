@@ -46,7 +46,7 @@ class dpWindow {
 	private _Init(options: IDPWOptions) {
 
 		//const defaults: IDPWOptions = {
-
+		 
 		//	//appearence: {
 		//	//	color: "White",
 		//	//	bgColor: "Black",
@@ -139,20 +139,10 @@ class dpWindow {
 	}
 
 	private _attachCloseActions() {
-
 		// Attaching close action
 		if (this.settings.closeSelectors) {
+			console.log(this.settings.closeSelectors);
 			this.Content.find(this.settings.closeSelectors)
-				.on("click", (sender) => {
-					this._log("Clicked on element with 'Close' action", DpLogSeverity.Trace);
-					this._close();
-				});
-		};
-
-		if (this.settings.closeDefferedSelectors) {
-			console.log(this.settings.closeDefferedSelectors);
-
-			this.Content.find(this.settings.closeDefferedSelectors)
 				.on("click", (sender) => {
 					this._log("Clicked on element with 'Close' action", DpLogSeverity.Trace);
 					this.Close($(sender.currentTarget));
@@ -310,8 +300,7 @@ class dpWindow {
 
 	public Close(sender = null) {
 		console.log(sender);
-		
-		if (!sender.hasClass("dpModalWindowBg") && jQuery.isFunction(this.settings.onBeforeClose)) {
+		if (jQuery.isFunction(this.settings.onBeforeClose)) {
 
 			this._log("onBeforeClose fired", DpLogSeverity.Trace);
 
@@ -320,15 +309,13 @@ class dpWindow {
 			$.when(this.settings.onBeforeClose(def, $(sender)))
 				.then(res => {
 					if (res) {
-						this._log("Deferred with TRUE value, closing window.", DpLogSeverity.Trace);
+						this._log("Deffered with TRUE value, closing window.", DpLogSeverity.Trace);
 						this._close();
 					} else {
-						this._log("Deferred with FALSE value, preventing window close.", DpLogSeverity.Trace);
+						this._log("Deffered with FALSE value, preventing window close.", DpLogSeverity.Trace);
 					};
 				});
-		}
-		else
-		{
+		} else {
 			this._log("Closing window.", DpLogSeverity.Trace);
 			this._close();
 		}
