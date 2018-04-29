@@ -29,7 +29,7 @@ class dpWindowHeader implements IDPWHeader {
 
 
 
-class dpWindow {
+class dpWindow implements IDPWindow {
 
 	private plugin: any;
 	private settings: IDPWOptions;
@@ -79,6 +79,15 @@ class dpWindow {
 
 	}
 
+	public ShowSpinner() {
+		const loadPrg: JQuery = $("<div/>").attr("class", "dpw-loading");
+		this.Content.append(loadPrg);
+	}
+
+	public HideSpinner() {
+		this.Content.find("div.dpw-loading").remove();
+	}
+
 	private _loadContents() {
 
 		if (this.settings.content.url === ""
@@ -96,7 +105,6 @@ class dpWindow {
 			this._attachCloseActions();
 		}
 		else {
-			const loadPrg: JQuery = $("<div/>").attr("class", "dpw-loading");
 
 			$.ajax({
 				async: true,
@@ -108,13 +116,13 @@ class dpWindow {
 				data: this.settings.content.urlPostData,
 
 				beforeSend: () => {
-					this.Content.append(loadPrg);
+					this.ShowSpinner();
 				},
 
 				success: data => {
 
-					loadPrg.remove();
-
+					this.HideSpinner();
+					
 					if (jQuery.isFunction(this.settings.onContentPrefilter)) {
 						data = this.settings.onContentPrefilter(data);
 					}
@@ -233,10 +241,8 @@ class dpWindow {
 			}
 		}
 
-		if (!this.container) {
-			this.container = this.Content;
-		}
-
+		this.container = this.Content;
+	
 		$("body")
 			.append(this.Content)
 			.append(this.wndBg);

@@ -13,6 +13,12 @@ interface JQueryStatic {
 	dpModal(options?: any);
 }
 
+interface IDPWindow {
+	Show(options: IDPWOptions);
+	ShowSpinner();
+	HideSpinner();
+}
+
 interface IDPWOptions {
 
 	id: string;

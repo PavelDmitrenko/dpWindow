@@ -1,5 +1,6 @@
 /// <reference path="dpwindow.d.ts" />
 var DpCloseAction;
+/// <reference path="dpwindow.d.ts" />
 (function (DpCloseAction) {
     DpCloseAction[DpCloseAction["Save"] = 0] = "Save";
     DpCloseAction[DpCloseAction["Cancel"] = 1] = "Cancel";
@@ -9,25 +10,22 @@ var DpLogSeverity;
     DpLogSeverity[DpLogSeverity["Trace"] = 0] = "Trace";
     DpLogSeverity[DpLogSeverity["Error"] = 1] = "Error";
 })(DpLogSeverity || (DpLogSeverity = {}));
-var dpWindowHeader = /** @class */ (function () {
-    function dpWindowHeader(ctl) {
+class dpWindowHeader {
+    constructor(ctl) {
         this._ctl = ctl;
     }
-    dpWindowHeader.prototype.getCtl = function () {
+    getCtl() {
         return this._ctl;
-    };
-    dpWindowHeader.prototype.setCaption = function (text) {
-        this._ctl.find("div.content").html(text);
-    };
-    return dpWindowHeader;
-}());
-var dpWindow = /** @class */ (function () {
-    function dpWindow() {
     }
-    dpWindow.prototype.Show = function (options) {
+    setCaption(text) {
+        this._ctl.find("div.content").html(text);
+    }
+}
+class dpWindow {
+    Show(options) {
         this._Init(options);
-    };
-    dpWindow.prototype._Init = function (options) {
+    }
+    _Init(options) {
         //const defaults: IDPWOptions = {
         //	//appearence: {
         //	//	color: "White",
@@ -39,8 +37,8 @@ var dpWindow = /** @class */ (function () {
         //	//}
         //};
         //this.settings = $.extend(true, {}, options, defaults);
-        var defaultAppearence = { color: "White", bgColor: "Black", bgOpacity: 0.5, className: "" };
-        var defaultContent = { urlPostMethod: "GET" };
+        const defaultAppearence = { color: "White", bgColor: "Black", bgOpacity: 0.5, className: "" };
+        const defaultContent = { urlPostMethod: "GET" };
         this.settings = options;
         this.settings.content = $.extend(defaultContent, this.settings.content);
         this.settings.appearence = $.extend(defaultAppearence, this.settings.appearence);
@@ -49,9 +47,15 @@ var dpWindow = /** @class */ (function () {
         this._log(this.settings, DpLogSeverity.Trace);
         this._placeControls();
         this._loadContents();
-    };
-    dpWindow.prototype._loadContents = function () {
-        var _this = this;
+    }
+    ShowSpinner() {
+        const loadPrg = $("<div/>").attr("class", "dpw-loading");
+        this.Content.append(loadPrg);
+    }
+    HideSpinner() {
+        this.Content.find("div.dpw-loading").remove();
+    }
+    _loadContents() {
         if (this.settings.content.url === ""
             && this.settings.content.html === "") {
             this._log("No content supplied", DpLogSeverity.Error);
@@ -64,7 +68,6 @@ var dpWindow = /** @class */ (function () {
             this._attachCloseActions();
         }
         else {
-            var loadPrg_1 = $("<div/>").attr("class", "dpw-loading");
             $.ajax({
                 async: true,
                 url: this.settings.content.url,
@@ -73,49 +76,47 @@ var dpWindow = /** @class */ (function () {
                 //dataType: "json",
                 method: this.settings.content.urlPostMethod,
                 data: this.settings.content.urlPostData,
-                beforeSend: function () {
-                    _this.Content.append(loadPrg_1);
+                beforeSend: () => {
+                    this.ShowSpinner();
                 },
-                success: function (data) {
-                    loadPrg_1.remove();
-                    if (jQuery.isFunction(_this.settings.onContentPrefilter)) {
-                        data = _this.settings.onContentPrefilter(data);
+                success: data => {
+                    this.HideSpinner();
+                    if (jQuery.isFunction(this.settings.onContentPrefilter)) {
+                        data = this.settings.onContentPrefilter(data);
                     }
-                    _this.container.html(data);
-                    _this.InnerContent = $(_this.container.html);
-                    if (jQuery.isFunction(_this.settings.onLoaded))
-                        _this.settings.onLoaded(_this);
-                    _this._attachCloseActions();
+                    this.container.html(data);
+                    this.InnerContent = $(this.container.html);
+                    if (jQuery.isFunction(this.settings.onLoaded))
+                        this.settings.onLoaded(this);
+                    this._attachCloseActions();
                 },
-                error: function (xhr, ajaxOptions, thrownError) {
-                    _this._log("LoadContents / Error processing Ajax request / " + thrownError + xhr.responseText, DpLogSeverity.Error);
+                error: (xhr, ajaxOptions, thrownError) => {
+                    this._log(`LoadContents / Error processing Ajax request / ${thrownError}${xhr.responseText}`, DpLogSeverity.Error);
                 }
             });
         }
-    };
-    dpWindow.prototype._attachCloseActions = function () {
-        var _this = this;
+    }
+    _attachCloseActions() {
         // Attaching close action
         if (this.settings.closeSelectors) {
             this.Content.find(this.settings.closeSelectors)
-                .on("click", function (sender) {
-                _this._log("Clicked on element with 'Close' action", DpLogSeverity.Trace);
-                _this._close();
+                .on("click", (sender) => {
+                this._log("Clicked on element with 'Close' action", DpLogSeverity.Trace);
+                this._close();
             });
         }
         ;
         if (this.settings.closeDefferedSelectors) {
             console.log(this.settings.closeDefferedSelectors);
             this.Content.find(this.settings.closeDefferedSelectors)
-                .on("click", function (sender) {
-                _this._log("Clicked on element with 'Close' action", DpLogSeverity.Trace);
-                _this.Close($(sender.currentTarget));
+                .on("click", (sender) => {
+                this._log("Clicked on element with 'Close' action", DpLogSeverity.Trace);
+                this.Close($(sender.currentTarget));
             });
         }
-    };
-    dpWindow.prototype._placeControls = function () {
-        var _this = this;
-        var sizeAndPosition = this._getSizeAndPosition();
+    }
+    _placeControls() {
+        const sizeAndPosition = this._getSizeAndPosition();
         this._log(sizeAndPosition, DpLogSeverity.Trace);
         this.Content = $("<div></div>")
             .attr("class", "dpModalWindow")
@@ -129,9 +130,9 @@ var dpWindow = /** @class */ (function () {
             .css("opacity", this.settings.appearence.bgOpacity)
             .css("z-index", sizeAndPosition.zindex - 1);
         if (this.settings.closeOnOuterMouseClick) {
-            this.wndBg.on("click", function () {
-                _this._log("Clicked on background", DpLogSeverity.Trace);
-                _this.Close(_this.wndBg);
+            this.wndBg.on("click", () => {
+                this._log("Clicked on background", DpLogSeverity.Trace);
+                this.Close(this.wndBg);
             });
         }
         this.Content.css({
@@ -144,15 +145,15 @@ var dpWindow = /** @class */ (function () {
         // Header
         if (this.settings.struct) {
             if (this.settings.struct.header) {
-                var headerCont = $("<header/>");
-                var headerContent = $("<div/>")
+                const headerCont = $("<header/>");
+                const headerContent = $("<div/>")
                     .addClass("content")
                     .html(this.settings.struct.header.content);
                 headerCont.append(headerContent);
                 if (this.settings.struct.header.showCloseButton) {
-                    var headerClosebut = $("<div/>").addClass("closeButton");
-                    headerClosebut.on("click", function () {
-                        _this._close();
+                    const headerClosebut = $("<div/>").addClass("closeButton");
+                    headerClosebut.on("click", () => {
+                        this._close();
                     });
                     headerCont.append(headerClosebut);
                 }
@@ -167,23 +168,21 @@ var dpWindow = /** @class */ (function () {
             }
             // Footer
             if (this.settings.struct.footer) {
-                var footer = $("<footer/>")
+                const footer = $("<footer/>")
                     .html(this.settings.struct.footer.content);
                 this.Content.append(footer);
             }
         }
-        if (!this.container) {
-            this.container = this.Content;
-        }
+        this.container = this.Content;
         $("body")
             .append(this.Content)
             .append(this.wndBg);
         this.Content.data("dpModalWindow", this);
-    };
-    dpWindow.prototype._getSizeAndPosition = function () {
-        var res = {};
-        var wndWidth = $(window).width();
-        var wndHeight = $(window).height();
+    }
+    _getSizeAndPosition() {
+        const res = {};
+        const wndWidth = $(window).width();
+        const wndHeight = $(window).height();
         res.width = this._getSize(this.settings.size.width.toString(), wndWidth);
         res.height = this._getSize(this.settings.size.height.toString(), wndHeight);
         res.top = (wndHeight / 2 - res.height / 2) - 3;
@@ -192,8 +191,8 @@ var dpWindow = /** @class */ (function () {
             this._log("Incorect Size", DpLogSeverity.Error);
             return null;
         }
-        var zIndex = 0;
-        var maxZindex = $(".dpModalWindow").css("z-index");
+        let zIndex = 0;
+        const maxZindex = $(".dpModalWindow").css("z-index");
         if (maxZindex) {
             zIndex = parseInt(maxZindex);
             ;
@@ -206,13 +205,13 @@ var dpWindow = /** @class */ (function () {
         }
         res.zindex = zIndex + 2; // "2" is for background reservation
         return res;
-    };
+    }
     ;
-    dpWindow.prototype._getSize = function (str, wndDim) {
+    _getSize(str, wndDim) {
         // LowerCase + Whitespace removing
         str = str.toLowerCase().replace(/\s+$/g, "");
         if (str.indexOf("%") > -1) {
-            var prcVal = str.replace("%", "");
+            const prcVal = str.replace("%", "");
             return wndDim * parseInt(prcVal) / 100;
         }
         ;
@@ -225,27 +224,25 @@ var dpWindow = /** @class */ (function () {
         }
         ;
         return 0;
-    };
+    }
     ;
-    dpWindow.prototype.GetContent = function () {
+    GetContent() {
         return $(this.Content.html);
-    };
+    }
     ;
-    dpWindow.prototype.Close = function (sender) {
-        var _this = this;
-        if (sender === void 0) { sender = null; }
+    Close(sender = null) {
         console.log(sender);
         if (!sender.hasClass("dpModalWindowBg") && jQuery.isFunction(this.settings.onBeforeClose)) {
             this._log("onBeforeClose fired", DpLogSeverity.Trace);
-            var def = $.Deferred();
+            const def = $.Deferred();
             $.when(this.settings.onBeforeClose(def, $(sender)))
-                .then(function (res) {
+                .then(res => {
                 if (res) {
-                    _this._log("Deferred with TRUE value, closing window.", DpLogSeverity.Trace);
-                    _this._close();
+                    this._log("Deferred with TRUE value, closing window.", DpLogSeverity.Trace);
+                    this._close();
                 }
                 else {
-                    _this._log("Deferred with FALSE value, preventing window close.", DpLogSeverity.Trace);
+                    this._log("Deferred with FALSE value, preventing window close.", DpLogSeverity.Trace);
                 }
                 ;
             });
@@ -254,9 +251,9 @@ var dpWindow = /** @class */ (function () {
             this._log("Closing window.", DpLogSeverity.Trace);
             this._close();
         }
-    };
+    }
     ;
-    dpWindow.prototype._close = function () {
+    _close() {
         this.Content.removeData("dpModalWindow");
         this.Content.remove();
         this.wndBg.remove();
@@ -264,22 +261,21 @@ var dpWindow = /** @class */ (function () {
             this.settings.onClose();
         }
         ;
-    };
+    }
     ;
-    dpWindow.prototype.Serialize = function () {
-        var _this = this;
+    Serialize() {
         var obj = {};
-        this.Content.find("[data-serializable]").each(function (ind, el) {
-            var isMultiple = false;
-            var $el = $(el);
-            var n = $el.attr("name"), v = $el.val(), type = $el.attr("data-serializable");
+        this.Content.find("[data-serializable]").each((ind, el) => {
+            let isMultiple = false;
+            const $el = $(el);
+            const n = $el.attr("name"), v = $el.val(), type = $el.attr("data-serializable");
             if ($el.is("ul")) {
                 isMultiple = true;
             }
             if (isMultiple) {
-                _this._Serialize($el);
+                this._Serialize($el);
             }
-            var value = v;
+            let value = v;
             switch (type) {
                 case "int":
                     value = parseInt(v);
@@ -294,12 +290,12 @@ var dpWindow = /** @class */ (function () {
                     : [obj[n], value];
         });
         return obj;
-    };
-    dpWindow.prototype._Serialize = function (el) {
-    };
-    dpWindow.prototype._log = function (msg, severity) {
-        var bgc = "White";
-        var color = "black";
+    }
+    _Serialize(el) {
+    }
+    _log(msg, severity) {
+        let bgc = "White";
+        let color = "black";
         switch (+severity) {
             case DpLogSeverity.Error:
                 color = "LimeGreen";
@@ -314,13 +310,12 @@ var dpWindow = /** @class */ (function () {
             console.log(msg);
         }
         else {
-            console.log("%cdpMW: " + msg, "color:" + color + ";font-weight:bold; background-color: " + bgc + ";");
+            console.log(`%cdpMW: ${msg}`, `color:${color};font-weight:bold; background-color: ${bgc};`);
         }
-    };
-    dpWindow.prototype._isNumeric = function (n) {
+    }
+    _isNumeric(n) {
         return !isNaN(parseInt(n)) && isFinite(n);
-    };
+    }
     ;
-    return dpWindow;
-}());
-//# sourceMappingURL=dpWindow.js.map
+}
+//# sourceMappingURL=dpwindow.js.map
