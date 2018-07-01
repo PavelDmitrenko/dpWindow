@@ -283,7 +283,7 @@ class dpWindow implements IDPWindow {
 		}
 
 
-		res.zindex = zIndex + 2; // "2" is for background reservation
+		res.zindex = zIndex + 1; // "1" is for background reservation
 
 		return res;
 	};
