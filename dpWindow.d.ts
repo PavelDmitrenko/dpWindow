@@ -34,7 +34,7 @@ interface IDPWOptions {
 
 	// Events
 	onLoaded?(wnd: any): any;
-	onBeforeClose?(deffered: any, sender: JQuery): void;
+	onBeforeClose?(deffered: any, sender: JQuery);
 	onContentPrefilter?(response: Object): string;
 	onClose?(): void;
 }
