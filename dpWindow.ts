@@ -298,7 +298,7 @@ class dpWindow implements IDPWindow {
 	public Close(sender = null) {
 		console.log(sender);
 
-		if (!sender.hasClass("dpModalWindowBg") && jQuery.isFunction(this.settings.onBeforeClose)) {
+		if (sender && !sender.hasClass("dpModalWindowBg") && jQuery.isFunction(this.settings.onBeforeClose)) {
 
 			this._Log("onBeforeClose fired", DpLogSeverity.Trace);
 
