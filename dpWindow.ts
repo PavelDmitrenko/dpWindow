@@ -63,12 +63,14 @@ class dpWindow implements IDPWindow {
 	}
 
 	public ShowSpinner() {
-		const loadPrg: JQuery = $("<div/>").attr("class", "dpw-loading");
-		this.Content.append(loadPrg);
+		const loadPrg = $("<div/>").attr("class", "dpw-loading");
+		const loadPrgIcon = $("<div/>").attr("class", "dpw-loading-icon");
+		this.Content.append(loadPrg).append(loadPrgIcon);
 	}
 
 	public HideSpinner() {
 		this.Content.find("div.dpw-loading").remove();
+		this.Content.find("div.dpw-loading-icon").remove();
 	}
 
 	private _LoadContents() {
@@ -103,7 +105,7 @@ class dpWindow implements IDPWindow {
 
 				success: data => {
 
-					this.HideSpinner();
+					
 					
 					if (jQuery.isFunction(this.settings.onContentPrefilter)) {
 						data = this.settings.onContentPrefilter(data);
@@ -117,6 +119,7 @@ class dpWindow implements IDPWindow {
 
 					this._AttachCloseActions();
 
+					this.HideSpinner();
 				},
 
 				error: (xhr, ajaxOptions, thrownError) => {
