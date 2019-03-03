@@ -28,13 +28,12 @@ class dpWindowHeader implements IDPWHeader {
 }
 
 
-
 class dpWindow implements IDPWindow {
 
-	private plugin: any;
 	private settings: IDPWOptions;
 	private container: JQuery;
 	private wndBg: JQuery;
+	private _resultiongSize:IDPWSize;
 	public InnerContent: JQuery;
 	public Content: JQuery;
 	public header: dpWindowHeader;
@@ -44,22 +43,6 @@ class dpWindow implements IDPWindow {
 	}
 
 	private _Init(options: IDPWOptions) {
-
-		//const defaults: IDPWOptions = {
-
-		//	//appearence: {
-		//	//	color: "White",
-		//	//	bgColor: "Black",
-		//	//	bgOpacity: 0.5,
-		//	//	className: ""
-		//	//},
-
-		//	//content:  {
-
-		//	//}
-		//};
-
-		//this.settings = $.extend(true, {}, options, defaults);
 
 		const defaultAppearence = { color: "White", bgColor: "Black", bgOpacity: 0.5, className: "" } as IDPWAppearence;
 		const defaultContent = { urlPostMethod: "GET" } as IDPWContentSettings;
@@ -72,11 +55,22 @@ class dpWindow implements IDPWindow {
 		if (this.settings.closeOnOuterMouseClick === undefined)
 			this.settings.closeOnOuterMouseClick = true;
 
-		this._log(this.settings, DpLogSeverity.Trace);
+		this._Log(this.settings, DpLogSeverity.Trace);
 
-		this._placeControls();
-		this._loadContents();
+		this._PlaceControls();
+		this._LoadContents();
+	}
 
+	private _onResize() 
+	{
+		$(window).resize((e) => {
+			const win = e.currentTarget as Window;
+			const w = win.innerWidth;
+			const h = win.innerHeight;
+
+			this.Content.css("top", (h / 2 - this._resultiongSize.height / 2) - 3);
+			this.Content.css("left", (w / 2 - this._resultiongSize.width / 2) - 3);
+		});
 	}
 
 	public ShowSpinner() {
@@ -88,11 +82,11 @@ class dpWindow implements IDPWindow {
 		this.Content.find("div.dpw-loading").remove();
 	}
 
-	private _loadContents() {
+	private _LoadContents() {
 
 		if (this.settings.content.url === ""
 			&& this.settings.content.html === "") {
-			this._log("No content supplied", DpLogSeverity.Error);
+			this._Log("No content supplied", DpLogSeverity.Error);
 			return;
 		}
 
@@ -102,7 +96,9 @@ class dpWindow implements IDPWindow {
 			if (jQuery.isFunction(this.settings.onLoaded))
 				this.settings.onLoaded(this);
 
-			this._attachCloseActions();
+			this._AttachCloseActions();
+			this._onResize();
+
 		}
 		else {
 
@@ -110,8 +106,6 @@ class dpWindow implements IDPWindow {
 				async: true,
 				url: this.settings.content.url,
 				cache: false,
-				//contentType: "application/json; charset=utf-8",
-				//dataType: "json",
 				method: this.settings.content.urlPostMethod,
 				data: this.settings.content.urlPostData,
 
@@ -122,7 +116,7 @@ class dpWindow implements IDPWindow {
 				success: data => {
 
 					this.HideSpinner();
-					
+
 					if (jQuery.isFunction(this.settings.onContentPrefilter)) {
 						data = this.settings.onContentPrefilter(data);
 					}
@@ -133,26 +127,27 @@ class dpWindow implements IDPWindow {
 					if (jQuery.isFunction(this.settings.onLoaded))
 						this.settings.onLoaded(this);
 
-					this._attachCloseActions();
+					this._AttachCloseActions();
+					this._onResize();
 
 				},
 
 				error: (xhr, ajaxOptions, thrownError) => {
-					this._log(`LoadContents / Error processing Ajax request / ${thrownError}${xhr.responseText}`, DpLogSeverity.Error);
+					this._Log(`LoadContents / Error processing Ajax request / ${thrownError}${xhr.responseText}`, DpLogSeverity.Error);
 				}
 
 			});
 		}
 	}
 
-	private _attachCloseActions() {
+	private _AttachCloseActions() {
 
 		// Attaching close action
 		if (this.settings.closeSelectors) {
 			this.Content.find(this.settings.closeSelectors)
 				.on("click", (sender) => {
-					this._log("Clicked on element with 'Close' action", DpLogSeverity.Trace);
-					this._close();
+					this._Log("Clicked on element with 'Close' action", DpLogSeverity.Trace);
+					this._Close();
 				});
 		};
 
@@ -161,16 +156,16 @@ class dpWindow implements IDPWindow {
 
 			this.Content.find(this.settings.closeDefferedSelectors)
 				.on("click", (sender) => {
-					this._log("Clicked on element with 'Close' action", DpLogSeverity.Trace);
+					this._Log("Clicked on element with 'Close' action", DpLogSeverity.Trace);
 					this.Close($(sender.currentTarget));
 				});
 		}
 	}
 
-	private _placeControls() {
+	private _PlaceControls() {
 
-		const sizeAndPosition = <IDPWSize>this._getSizeAndPosition();
-		this._log(sizeAndPosition, DpLogSeverity.Trace);
+		const sizeAndPosition = this._GetSizeAndPosition();
+		this._Log(sizeAndPosition, DpLogSeverity.Trace);
 
 		this.Content = $("<div></div>")
 			.attr("class", "dpModalWindow")
@@ -189,7 +184,7 @@ class dpWindow implements IDPWindow {
 
 		if (this.settings.closeOnOuterMouseClick) {
 			this.wndBg.on("click", () => {
-				this._log("Clicked on background", DpLogSeverity.Trace);
+				this._Log("Clicked on background", DpLogSeverity.Trace);
 				this.Close(this.wndBg);
 			});
 		}
@@ -216,7 +211,7 @@ class dpWindow implements IDPWindow {
 				if (this.settings.struct.header.showCloseButton) {
 					const headerClosebut = $("<div/>").addClass("closeButton");
 					headerClosebut.on("click", () => {
-						this._close();
+						this._Close();
 					});
 					headerCont.append(headerClosebut);
 				};
@@ -242,7 +237,7 @@ class dpWindow implements IDPWindow {
 		}
 
 		this.container = this.Content;
-	
+
 		$("body")
 			.append(this.Content)
 			.append(this.wndBg);
@@ -251,25 +246,25 @@ class dpWindow implements IDPWindow {
 		this.Content.data("dpModalWindow", this);
 	}
 
-	private _getSizeAndPosition(): IDPWSize {
-
-		const res = <IDPWSize>{};
+	private _GetSizeAndPosition(): IDPWSize {
 
 		const wndWidth = $(window).width();
 		const wndHeight = $(window).height();
 
-		res.width = this._getSize(this.settings.size.width.toString(), wndWidth);
-		res.height = this._getSize(this.settings.size.height.toString(), wndHeight);
+		this._resultiongSize = <IDPWSize>{};
+		this._resultiongSize.width = this._GetSize(this.settings.size.width.toString(), wndWidth);
+		this._resultiongSize.height = this._GetSize(this.settings.size.height.toString(), wndHeight);
 
-		res.top = (wndHeight / 2 - res.height / 2) - 3;
-		res.left = (wndWidth / 2 - res.width / 2) - 3;
+	
+		this._resultiongSize.top = (wndHeight / 2 - this._resultiongSize.height / 2) - 3;
+		this._resultiongSize.left = (wndWidth / 2 - this._resultiongSize.width / 2) - 3;
 
-		if (res.width === 0 || res.height === 0) {
-			this._log("Incorect Size", DpLogSeverity.Error);
+		if (this._resultiongSize.width === 0 || this._resultiongSize.height === 0) {
+			this._Log("Incorect Size", DpLogSeverity.Error);
 			return null;
 		}
 
-		let zIndex: number = 0;
+		let zIndex: number;
 		const maxZindex = $(".dpModalWindow").css("z-index");
 
 		if (maxZindex) {
@@ -282,13 +277,12 @@ class dpWindow implements IDPWindow {
 				zIndex = 999;
 		}
 
+		this._resultiongSize.zindex = zIndex + 1; // "1" is for background reservation
 
-		res.zindex = zIndex + 2; // "2" is for background reservation
-
-		return res;
+		return this._resultiongSize;
 	};
 
-	private _getSize(str: string, wndDim: number): number {
+	private _GetSize(str: string, wndDim: number): number {
 
 		// LowerCase + Whitespace removing
 		str = str.toLowerCase().replace(/\s+$/g, "");
@@ -302,7 +296,7 @@ class dpWindow implements IDPWindow {
 			return parseInt(str.replace("px", ""));
 		};
 
-		if (this._isNumeric(str)) {
+		if (this._IsNumeric(str)) {
 			return parseInt(str);
 		};
 
@@ -316,29 +310,29 @@ class dpWindow implements IDPWindow {
 	public Close(sender = null) {
 		console.log(sender);
 
-		if (!sender.hasClass("dpModalWindowBg") && jQuery.isFunction(this.settings.onBeforeClose)) {
+		if (sender && !sender.hasClass("dpModalWindowBg") && jQuery.isFunction(this.settings.onBeforeClose)) {
 
-			this._log("onBeforeClose fired", DpLogSeverity.Trace);
+			this._Log("onBeforeClose fired", DpLogSeverity.Trace);
 
 			const def = $.Deferred<boolean>();
 
 			$.when(this.settings.onBeforeClose(def, $(sender)))
 				.then(res => {
 					if (res) {
-						this._log("Deferred with TRUE value, closing window.", DpLogSeverity.Trace);
-						this._close();
+						this._Log("Deferred with TRUE value, closing window.", DpLogSeverity.Trace);
+						this._Close();
 					} else {
-						this._log("Deferred with FALSE value, preventing window close.", DpLogSeverity.Trace);
+						this._Log("Deferred with FALSE value, preventing window close.", DpLogSeverity.Trace);
 					};
 				});
 		}
 		else {
-			this._log("Closing window.", DpLogSeverity.Trace);
-			this._close();
+			this._Log("Closing window.", DpLogSeverity.Trace);
+			this._Close();
 		}
 	};
 
-	private _close() {
+	private _Close() {
 		this.Content.removeData("dpModalWindow");
 
 		this.Content.remove();
@@ -366,7 +360,7 @@ class dpWindow implements IDPWindow {
 			}
 
 			if (isMultiple) {
-				this._Serialize($el);
+
 			}
 
 			let value = v;
@@ -389,11 +383,7 @@ class dpWindow implements IDPWindow {
 		return obj;
 	}
 
-	private _Serialize(el: JQuery) {
-
-	}
-
-	private _log(msg: any, severity: DpLogSeverity) {
+	private _Log(msg: any, severity: DpLogSeverity) {
 
 		let bgc = "White";
 		let color = "black";
@@ -411,7 +401,7 @@ class dpWindow implements IDPWindow {
 
 	}
 
-	private _isNumeric(n) {
+	private _IsNumeric(n) {
 		return !isNaN(parseInt(n)) && isFinite(n);
 	};
 
