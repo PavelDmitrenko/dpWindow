@@ -28,12 +28,12 @@ class dpWindowHeader implements IDPWHeader {
 }
 
 
-
 class dpWindow implements IDPWindow {
 
 	private settings: IDPWOptions;
 	private container: JQuery;
 	private wndBg: JQuery;
+	private _resultiongSize:IDPWSize;
 	public InnerContent: JQuery;
 	public Content: JQuery;
 	public header: dpWindowHeader;
@@ -59,7 +59,18 @@ class dpWindow implements IDPWindow {
 
 		this._PlaceControls();
 		this._LoadContents();
+	}
 
+	private _onResize() 
+	{
+		$(window).resize((e) => {
+			const win = e.currentTarget as Window;
+			const w = win.innerWidth;
+			const h = win.innerHeight;
+
+			this.Content.css("top", (h / 2 - this._resultiongSize.height / 2) - 3);
+			this.Content.css("left", (w / 2 - this._resultiongSize.width / 2) - 3);
+		});
 	}
 
 	public ShowSpinner() {
@@ -79,14 +90,15 @@ class dpWindow implements IDPWindow {
 			return;
 		}
 
-		if (!this.settings.content.url && this.settings.content.html !== "") 
-		{
+		if (!this.settings.content.url && this.settings.content.html !== "") {
 			this.container.html(this.settings.content.html);
 
 			if (jQuery.isFunction(this.settings.onLoaded))
 				this.settings.onLoaded(this);
 
 			this._AttachCloseActions();
+			this._onResize();
+
 		}
 		else {
 
@@ -104,7 +116,7 @@ class dpWindow implements IDPWindow {
 				success: data => {
 
 					this.HideSpinner();
-					
+
 					if (jQuery.isFunction(this.settings.onContentPrefilter)) {
 						data = this.settings.onContentPrefilter(data);
 					}
@@ -116,6 +128,7 @@ class dpWindow implements IDPWindow {
 						this.settings.onLoaded(this);
 
 					this._AttachCloseActions();
+					this._onResize();
 
 				},
 
@@ -224,7 +237,7 @@ class dpWindow implements IDPWindow {
 		}
 
 		this.container = this.Content;
-	
+
 		$("body")
 			.append(this.Content)
 			.append(this.wndBg);
@@ -235,18 +248,18 @@ class dpWindow implements IDPWindow {
 
 	private _GetSizeAndPosition(): IDPWSize {
 
-		const res = <IDPWSize>{};
-
 		const wndWidth = $(window).width();
 		const wndHeight = $(window).height();
 
-		res.width = this._GetSize(this.settings.size.width.toString(), wndWidth);
-		res.height = this._GetSize(this.settings.size.height.toString(), wndHeight);
+		this._resultiongSize = <IDPWSize>{};
+		this._resultiongSize.width = this._GetSize(this.settings.size.width.toString(), wndWidth);
+		this._resultiongSize.height = this._GetSize(this.settings.size.height.toString(), wndHeight);
 
-		res.top = (wndHeight / 2 - res.height / 2) - 3;
-		res.left = (wndWidth / 2 - res.width / 2) - 3;
+	
+		this._resultiongSize.top = (wndHeight / 2 - this._resultiongSize.height / 2) - 3;
+		this._resultiongSize.left = (wndWidth / 2 - this._resultiongSize.width / 2) - 3;
 
-		if (res.width === 0 || res.height === 0) {
+		if (this._resultiongSize.width === 0 || this._resultiongSize.height === 0) {
 			this._Log("Incorect Size", DpLogSeverity.Error);
 			return null;
 		}
@@ -264,10 +277,9 @@ class dpWindow implements IDPWindow {
 				zIndex = 999;
 		}
 
+		this._resultiongSize.zindex = zIndex + 1; // "1" is for background reservation
 
-		res.zindex = zIndex + 1; // "1" is for background reservation
-
-		return res;
+		return this._resultiongSize;
 	};
 
 	private _GetSize(str: string, wndDim: number): number {
@@ -348,7 +360,7 @@ class dpWindow implements IDPWindow {
 			}
 
 			if (isMultiple) {
-				
+
 			}
 
 			let value = v;
