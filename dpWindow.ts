@@ -74,8 +74,8 @@ class dpWindow implements IDPWindow {
 	}
 
 	public ShowSpinner() {
-		const loadPrg: JQuery = $("<div/>").attr("class", "dpw-loading");
-		this.Content.append(loadPrg);
+		$("<div/>").attr("class", "dpw-loading").appendTo(this.Content);
+		$("<div/>").attr("class", "dpw-loading-icon").appendTo(this.Content);
 	}
 
 	public HideSpinner() {
