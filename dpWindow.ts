@@ -80,6 +80,7 @@ class dpWindow implements IDPWindow {
 
 	public HideSpinner() {
 		this.Content.find("div.dpw-loading").remove();
+		this.Content.find("div.dpw-loading-icon").remove();
 	}
 
 	private _LoadContents() {
