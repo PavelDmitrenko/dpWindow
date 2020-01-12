@@ -64,7 +64,7 @@ class dpWindow implements IDPWindow {
 	private _onResize() 
 	{
 		$(window).resize((e) => {
-			const win = e.currentTarget as Window;
+			const win = (e.currentTarget as any) as Window;
 			const w = win.innerWidth;
 			const h = win.innerHeight;
 
